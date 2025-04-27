@@ -20,6 +20,7 @@ $r = $m -> buldFlowchart
             'forth'  => [ 'label' => 'forth name', 'shape' => 'rect' ],
             'un'     => [ 'label' => 'c1', 'shape' => 'container' ],
             'bug'    => [ 'label' => 'c2', 'shape' => 'container' ],
+            'lag'    => [ 'label' => 'lag', 'shape' => 'rect' ],
         ],
         'hierachy' =>
         [
@@ -43,8 +44,14 @@ $r = $m -> buldFlowchart
             [
                 'from' => 'un',
                 'to' => 'bug',
-                'type' => '===>',
+                'type' => '-.->',
                 'label' => 'he "llo" dsdf'
+            ],
+            [
+                'from' => 'third',
+                'to' => 'lag',
+                'type' => '~~~',
+                'label' => '!'
             ]
         ]
     ]
