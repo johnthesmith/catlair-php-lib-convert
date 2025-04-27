@@ -32,26 +32,22 @@ $r = $m -> buldFlowchart
             [
                 'from' => 'first',
                 'to' => 'second',
-                'type' => '===>',
+                'line' => Mermaid::LINK_DOT,
+                'end' => Mermaid::POINT_CROSS,
                 'label' => 'he "llo" dsdf'
             ],
             [
                 'from' => 'second',
                 'to' => 'first',
-                'type' => '===>',
-                'label' => 'he "llo" dsdf'
+                'end' => Mermaid::POINT_DOT,
             ],
             [
                 'from' => 'un',
                 'to' => 'bug',
-                'type' => '-.->',
-                'label' => 'he "llo" dsdf'
             ],
             [
                 'from' => 'third',
                 'to' => 'lag',
-                'type' => '~~~',
-                'label' => '!'
             ]
         ]
     ]

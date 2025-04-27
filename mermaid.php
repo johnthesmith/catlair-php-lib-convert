@@ -45,6 +45,17 @@ class Mermaid extends Result
     const DIRECTION_RIGHT_LEFT  = 'RL';
     const DIRECTION_LEFT_RIGHT  = 'LR';
 
+    /* Line style */
+    const LINK_BOLD         = 'bold';
+    const LINK_LINE         = 'line';
+    const LINK_DOT          = 'dot';
+    const LINK_HIDDEN       = 'hidden';
+
+    /* Begin of line */
+    const POINT_ARROW        = 'arrow';
+    const POINT_CROSS        = 'cross';
+    const POINT_DOT          = 'dot';
+    const POINT_NONE         = 'none';
 
 
     /* Log object */
@@ -132,7 +143,12 @@ class Mermaid extends Result
             $shape = clValueFromObject( $element, 'shape', '' );
             if( $shape != 'container' )
             {
-                $result[] = $id . '@{ shape: ' . $shape . ', label: "' . $label . '" }';
+                $result[] = $id
+                . '@{ shape: '
+                . $shape
+                . ', label: "'
+                . $label
+                . '" }';
             }
             else
             {
@@ -180,7 +196,13 @@ class Mermaid extends Result
             /* Извлечение from */
             $from = clValueFromObject( $link, 'from' );
             $to = clValueFromObject( $link, 'to' );
-            $type = clValueFromObject( $link, 'type', '-->' );
+
+            $type = $this -> getLink
+            (
+                clValueFromObject( $link, 'line', self::LINK_LINE ),
+                clValueFromObject( $link, 'begin', self::POINT_NONE ),
+                clValueFromObject( $link, 'end', self::POINT_ARROW )
+            );
 
             /* Извлечение метки */
             $label = str_replace
@@ -206,7 +228,16 @@ class Mermaid extends Result
 
             if( $this -> isOk() )
             {
-                $result[] = $from . ' ' . $type . ' |' .$label. '| ' . $to;
+                $result[] = $from
+                . ' '
+                . $type
+                .
+                (
+                    empty( $label )
+                    ? ' '
+                    : ' |' . $label . '| '
+                )
+                . $to;
             }
             else break;
         }
@@ -227,4 +258,79 @@ class Mermaid extends Result
     {
         return $this -> log;
     }
+
+
+
+    /*
+        Return link
+    */
+    public function getLink
+    (
+        /* Line type LINK_* */
+        string $line,
+        string $begin,
+        string $end
+    )
+    {
+        $result = '-->';
+
+        switch( $begin )
+        {
+            case self::POINT_CROSS: $b = 'x'; break;
+            case self::POINT_DOT:   $b - 'o'; break;
+            case self::POINT_ARROW: $b = '<'; break;
+        }
+
+        switch( $end )
+        {
+            case self::POINT_CROSS: $e = 'x'; break;
+            case self::POINT_DOT:   $e = 'o'; break;
+            case self::POINT_ARROW: $e = '>'; break;
+        }
+
+        switch( $line )
+        {
+            case self::LINK_LINE:
+                switch( $begin )
+                {
+                    case self::POINT_NONE:  $b = '-'; break;
+                }
+                switch( $end )
+                {
+                    case self::POINT_NONE:  $e = '-'; break;
+                }
+                $result = $b . '-' . $e;
+            break;
+            case self::LINK_BOLD:
+                switch( $begin )
+                {
+                    case self::POINT_NONE:  $b = '='; break;
+                }
+                switch( $end )
+                {
+                    case self::POINT_NONE:  $e = '='; break;
+                }
+                $result = $b . '=' . $e;
+            break;
+            case self::LINK_DOT:
+                switch( $begin )
+                {
+                    case self::POINT_NONE:  $b = '-'; break;
+                }
+                switch( $end )
+                {
+                    case self::POINT_NONE:  $e = '-'; break;
+                    case self::POINT_ARROW: $e = '->'; break;
+                    case self::POINT_CROSS: $e = '-x'; break;
+                    case self::POINT_DOT:   $e = '-o'; break;
+                }
+                $result = $b . '.' . $e;
+            break;
+            case self::LINK_HIDDENT:
+                $result = '~~~';
+            break;
+        }
+        return $result;
+    }
+
 }
