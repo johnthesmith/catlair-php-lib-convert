@@ -115,15 +115,60 @@ class Mermaid extends Result
         /* Добавление элементов */
         foreach( $elements as $id => $element )
         {
+            $url = clValueFromObject( $element, 'url', null );
+
             $label = str_replace
             (
                 [ '"' ],
                 [ '\'\'' ],
                 clValueFromObject( $element, 'label', $id )
             );
+
+            if( !empty( $url ))
+            {
+                $label = '<a href="' . $url . '">' . $label . '</a>';
+            }
+
             $shape = clValueFromObject( $element, 'shape', '' );
-            $result[] = $id . '@{ shape: ' . $shape . ', label: "' . $label . '" }';
+            if( $shape != 'container' )
+            {
+                $result[] = $id . '@{ shape: ' . $shape . ', label: "' . $label . '" }';
+            }
+            else
+            {
+                $result[] = $id;
+            }
         }
+
+        $result[] = '';
+        $result[] = '%% Hierarch';
+
+        $subgraphs = function( $hierachy )
+        use ( &$subgraphs, &$result, &$aData )
+        {
+            foreach( $hierachy as $key => $value)
+            {
+                if( is_array( $value ))
+                {
+                    $label = clValueFromObject
+                    (
+                        $aData,
+                        [ 'elements', $key, 'label' ],
+                        ''
+                    );
+                    $result[] = 'subgraph '
+                    . $key
+                    . ( empty( $label ) ? '' : ( '[' . $label . ']' ));
+                    $subgraphs( $value );
+                    $result[] = 'end';
+                }
+                else
+                {
+                    $result[] = $value;
+                }
+            }
+        };
+        $subgraphs( $hierachy );
 
 
         $result[] = '';
