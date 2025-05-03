@@ -17,10 +17,10 @@ $r = $m -> buldFlowchart
             'first'  => [ 'label' => 'first!', 'shape' => 'lin-cyl' ],
             'second' => [ 'label' => 'second name', 'shape' => 'docs' ],
             'third'  => [ 'label' => 'third name', 'shape' => 'rect', 'url' => 'https://google.com' ],
-            'forth'  => [ 'label' => 'forth name', 'shape' => 'rect' ],
-            'un'     => [ 'label' => 'c1', 'shape' => 'container' ],
-            'bug'    => [ 'label' => 'c2', 'shape' => 'container' ],
-            'lag'    => [ 'label' => 'lag', 'shape' => 'rect' ],
+            'forth'  => [ 'label' => 'forth name', 'shape' => 'main-circle' ],
+            'un'     => [ 'label' => 'c1', 'shape' => 'main-container' ],
+            'bug'    => [ 'label' => 'c2', 'shape' => 'main-container' ],
+            'lag'    => [ 'label' => 'lag', 'shape' => 'main-stadium' ],
         ],
         'hierachy' =>
         [

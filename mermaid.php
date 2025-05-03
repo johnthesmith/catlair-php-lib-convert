@@ -18,18 +18,20 @@
 
 /*
     Построитель кода mermaid диаграмм
-
     Репозитории
         2025-04-27
             https://github.com/johnthesmith/catlair-php-lib-web
 */
+
+
+
 namespace catlair;
 
 
 
 /* Core libraries */
-require_once '../core/result.php';
-require_once '../core/log.php';
+require_once LIB . '/core/result.php';
+require_once LIB . '/core/log.php';
 
 
 
@@ -38,24 +40,46 @@ require_once '../core/log.php';
 */
 class Mermaid extends Result
 {
-    /* Flowchart directions */
-    const DIRECTION_TOP_DOWN    = 'TD';
+    const DIRECTION_TOP_DOWN    = 'TB';         /* Top bottom */
     const DIRECTION_TOP_BOTTOM  = 'TB';
     const DIRECTION_BOTTOM_TOP  = 'BT';
     const DIRECTION_RIGHT_LEFT  = 'RL';
     const DIRECTION_LEFT_RIGHT  = 'LR';
 
     /* Line style */
-    const LINK_BOLD         = 'bold';
-    const LINK_LINE         = 'line';
-    const LINK_DOT          = 'dot';
-    const LINK_HIDDEN       = 'hidden';
+    const LINK_BOLD             = 'bold';       /* === */
+    const LINK_LINE             = 'line';       /* --- */
+    const LINK_DOT              = 'dot';        /* -.- */
+    const LINK_HIDDEN           = 'hidden';     /* ~~~ */
 
     /* Begin of line */
-    const POINT_ARROW        = 'arrow';
-    const POINT_CROSS        = 'cross';
-    const POINT_DOT          = 'dot';
-    const POINT_NONE         = 'none';
+    const POINT_ARROW           = 'arrow';      /* > */
+    const POINT_CROSS           = 'cross';      /* x */
+    const POINT_DOT             = 'dot';        /* o */
+    const POINT_NONE            = 'none';       /* - */
+
+    /*
+        Shapes SHAPES_CONSTANTS
+        https://mermaid.js.org/syntax/flowchart.html
+    */
+    const MAIN_CONTAINER        = 'main-container';        // subgraph
+    const MAIN_ASYMMETRIC       = 'main-asymmetric';       // >text]
+    const MAIN_CIRCLE           = 'main-circle';           // ((text))
+    const MAIN_CIRCLE_DOUBLE    = 'main-circle-double';    // (((text)))
+    const MAIN_CYLINDRER        = 'main-cylindrer';        // [(text)]
+    const MAIN_STADIUM          = 'main-stadium';          // ([text])
+    const MAIN_HEXAGON          = 'main-hexagon';          // {{text}}
+    const MAIN_PARAL_LEFT       = 'main-paral-left';       // [\text\]
+    const MAIN_PARAL_RIGHT      = 'main-paral-right';      // [/text/]
+    const MAIN_RECT             = 'main-rect';             // [text]
+    const MAIN_RECT_ROUNDED     = 'main-rect-rounded';     // (text)
+    const MAIN_RHOMBUS          = 'main-rhombus';          // {text}
+    const MAIN_SUBROUTINE       = 'main-subroutine';       // [[text]]
+    const MAIN_TRAPEZOID_DOWN   = 'main-trapezoid-down';   // [/text\]
+    const MAIN_TRAPEZOID_UP     = 'main-trapezoid-up';      // [\text/]
+    /* Mindmap */
+    const MAIN_BANG             = 'main-bang';              // ))text((
+    const MAIN_CLOUD            = 'main-cloud';             // ((text))
 
 
     /* Log object */
@@ -79,27 +103,33 @@ class Mermaid extends Result
 
 
 
-    /*
+
+   /*
         Builds flowchart diagram
 
         elements:
-        - first:
-            label: string
-            shape: https://mermaid.js.org/syntax/flowchart.html#expanded-node-shapes-in-mermaid-flowcharts-v11-3-0
-        - second:
-          ...
-        - third
-          ...
+        -
+          first:
+            label   : string
+            shape   : SHAPES_CONSTANTS
+            url     : url
+        -
+          second:
+            ...
 
         heracly:
-          third
+          third:
             first:
             second:
 
         links:
         -
-          from: first
-          to: second
+          from  : string
+          to    : string
+          line  : LINE_
+          begin : POINT_
+          end   : POINT_*
+          label : string
     */
     public function buldFlowchart
     (
@@ -111,27 +141,27 @@ class Mermaid extends Result
     : string
     {
         $result = [];
-        $result[] = '%% FLowchatd diagramm';
+        $result[] = '%% Flowchatd diagramm';
 
         /* Begin of diagram */
         $result[] = 'flowchart ' . $aDirection;
 
+        /* Create objects */
         $elements = clValueFromObject( $aData, 'elements', [] );
         $hierachy = clValueFromObject( $aData, 'hierachy', [] );
         $links = clValueFromObject( $aData, 'links', [] );
 
+        /* Добавление элементов */
         $result[] = '';
         $result[] = '%% Elements';
-
-        /* Добавление элементов */
         foreach( $elements as $id => $element )
         {
             $url = clValueFromObject( $element, 'url', null );
 
             $label = str_replace
             (
-                [ '"' ],
-                [ '\'\'' ],
+                [ '{}()[]|"' ],
+                [ '______!\'\'' ],
                 clValueFromObject( $element, 'label', $id )
             );
 
@@ -140,29 +170,20 @@ class Mermaid extends Result
                 $label = '<a href="' . $url . '">' . $label . '</a>';
             }
 
-            $shape = clValueFromObject( $element, 'shape', '' );
-            if( $shape != 'container' )
-            {
-                $result[] = $id
-                . '@{ shape: '
-                . $shape
-                . ', label: "'
-                . $label
-                . '" }';
-            }
-            else
-            {
-                $result[] = $id;
-            }
+            $result[] = $id . $this -> getFlowchartElement
+            (
+                $label,
+                clValueFromObject( $element, 'shape', '' )
+            );
         }
 
+        /* Сборка иерархии */
         $result[] = '';
         $result[] = '%% Hierarch';
-
         $subgraphs = function( $hierachy )
         use ( &$subgraphs, &$result, &$aData )
         {
-            foreach( $hierachy as $key => $value)
+            foreach( $hierachy as $key => $value )
             {
                 if( is_array( $value ))
                 {
@@ -186,11 +207,9 @@ class Mermaid extends Result
         };
         $subgraphs( $hierachy );
 
-
+        /* Добавление связей */
         $result[] = '';
         $result[] = '%% Links';
-
-        /* Добавление связей */
         foreach( $links as $link )
         {
             /* Извлечение from */
@@ -232,22 +251,100 @@ class Mermaid extends Result
                 . ' '
                 . $type
                 .
-                (
-                    empty( $label )
-                    ? ' '
-                    : ' |' . $label . '| '
-                )
+                ( empty( $label ) ? ' ' : ' |' . $label . '| ' )
                 . $to;
             }
             else break;
         }
+
+        return $this -> isOk() ? implode( PHP_EOL, $result ) . PHP_EOL : '';
+    }
+
+
+
+    /*
+        Builds flowchart diagram
+    */
+    public function buildMindmap
+    (
+        /*
+            nodes:
+            - first
+                label:
+                shape:
+
+            hierarchy:
+            - first:
+              - second:
+                ...
+            - third:
+              ...
+        */
+        array $a
+    )
+    :string
+    {
+        $result = [];
+        $result[] = '%% Mindmap diagramm';
+
+        /* Get elements */
+        $elements = clValueFromObject( $a, 'nodes', [] );
+        $hierarchy = clValueFromObject( $a, 'hierarchy', [] );
+
+
+        /* Begin of diagram */
+        $result[] = 'mindmap';
+
+        /* Recursion for hierarchy */
+        $loop = function( $tree, $depth )
+        use ( &$result, &$loop, &$hierarchy, &$elements )
+        {
+            foreach( $tree as $key => $value )
+            {
+                $item = clValueFromObject( $elements, $key );
+                if( $item )
+                {
+                    /* Ключ присутствует в списке элементов */
+                    $label = $this -> getMindmapElement
+                    (
+                        clValueFromObject( $item, 'label', $key ),
+                        clValueFromObject( $item, 'shape', self::MAIN_RECT )
+                    );
+                }
+                else
+                {
+                    /* Используется идентификтаор элемента */
+                    $label = $key;
+                }
+                /* Добавляем новый элемент */
+                $result[] = str_repeat( ' ', $depth * 2) . $label;
+                /* запуск рекурсии при наличии массива потомков */
+                if( is_array( $value ))
+                {
+                    $loop( $value, $depth + 1 );
+                }
+            }
+        };
+        $loop( $hierarchy, 1 );
 
         return $this -> isOk() ? implode( PHP_EOL, $result ) .  PHP_EOL : '';
     }
 
 
 
-    /*
+    public function buldSequence
+    (
+        /* Incoming array */
+        array $aData
+    )
+    : string
+    {
+        $result = '';
+        return $result;
+    }
+
+
+    /**************************************************************************
         Setters and getters
     */
 
@@ -333,4 +430,72 @@ class Mermaid extends Result
         return $result;
     }
 
+
+
+    /*
+        Convert shape in to label
+    */
+    public static function getFlowchartElement
+    (
+        /* Human readable label */
+        string $label,
+        /* Shape MAIN_* */
+        $shape = self::MAIN_RECT
+    )
+    : string
+    {
+        switch( $shape )
+        {
+            case '':
+            case null:
+            case self::MAIN_RECT:           return "[$label]";
+            case self::MAIN_ASYMMETRIC:     return ">$label]";
+            case self::MAIN_BANG:           /* Mindmap */
+            case self::MAIN_CLOUD:          /* Mindmap */
+            case self::MAIN_CIRCLE:         return "(($label))";
+            case self::MAIN_CIRCLE_DOUBLE:  return "((($label)))";
+            case self::MAIN_CYLINDRER:      return "[($label)]";
+            case self::MAIN_STADIUM:        return "([$label])";
+            case self::MAIN_HEXAGON:        return "{{$label}}";
+            case self::MAIN_PARAL_LEFT:     return "[\$label\]";
+            case self::MAIN_PARAL_RIGHT:    return "[/$label/]";
+            case self::MAIN_RECT_ROUNDED:   return "($label)";
+            case self::MAIN_RHOMBUS:        return "{$label}";
+            case self::MAIN_SUBROUTINE:     return "[[$label]]";
+            case self::MAIN_TRAPEZOID_DOWN: return "[/$label\]";
+            case self::MAIN_TRAPEZOID_UP:   return "[\$label/]";
+            case self::MAIN_CONTAINER:      return '';
+            default:
+                return '@{ shape: ' . $shape . ', label: "' . $label . '" }';
+        }
+    }
+
+
+
+    /*
+        Convert shape in to label
+    */
+    public static function getMindmapElement
+    (
+        /* Human readable label */
+        string $label,
+        /* Shape MAIN_* */
+        $shape = self::MAIN_RECT
+    )
+    : string
+    {
+        switch( $shape )
+        {
+            case '':
+            case null:
+            default:                        /* Other */
+            case self::MAIN_RECT:           return "[$label]";
+            case self::MAIN_CIRCLE:         return "(($label))";
+            case self::MAIN_RECT_ROUNDED:   return "($label)";
+            case self::MAIN_BANG:           return "))$label((";
+            case self::MAIN_CLOUD:          return "($label)";
+            case self::MAIN_HEXAGON:        return "{{$label}}";
+        }
+    }
 }
+
